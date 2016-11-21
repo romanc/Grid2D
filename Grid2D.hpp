@@ -35,7 +35,7 @@ class Grid2D
         const size_t getCols() const { return cols; }
         
         const size_t getBlockingFactor() const { return blocking; }
-        const size_t setBlockingFactor(size_t factor) {
+        void setBlockingFactor(const size_t factor) {
             // assert rows and cols beeing multiple of the blocking factor
             assert(rows % factor == 0);
             assert(cols % factor == 0);
