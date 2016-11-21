@@ -140,7 +140,9 @@ std::ostream& operator<<(std::ostream& out, const Grid2D<T>& g)
     
     for(size_t i = 0; i < g.getRows(); ++i) {
         if(g.getBlockingFactor() > 1 && i > 0 && i % g.getBlockingFactor() == 0) {
-            for(size_t k = 0; k <= g.getCols(); ++k) out << "-\t";
+            for(size_t k = 0; k < g.getCols() + g.getCols() / g.getBlockingFactor() - 1; ++k) {
+                out << "-\t";
+            }
             out << "\n";
         }
             
