@@ -45,8 +45,19 @@ int main() {
             blocktest.getBlock(i, j, block);
             std::cout << "Block I/J = " << i << "/" << j << "\n";
             std::cout << block << std::endl;
+            
+            if(i == 0) {
+                for(size_t ii = 0; ii < 4; ++ii) {
+                    for(size_t jj = 0; jj < 4; ++jj) {
+                        block(ii,jj) *= 2;
+                    }
+                }
+                blocktest.setBlock(i, j, block);
+            }
         }
     }
+    
+    std::cout << "Blocktest matrix\n" << blocktest << std::endl;
 
     return 0;
 }

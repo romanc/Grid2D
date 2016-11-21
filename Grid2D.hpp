@@ -65,18 +65,24 @@ class Grid2D
             assert(k == blocking * blocking);
         }
         
-        void setBlock(const size_t i, const size_t j, const Grid2D<T>& block) {
+        void setBlock(const size_t I, const size_t J, const Grid2D<T>& block) {
             // assert a useful blocking factor
             assert(blocking > 1);
             assert(blocking <= std::min(rows, cols));
-            assert(blocking % rows == 0 && blocking % cols == 0);
+            assert(rows % blocking == 0 && cols % blocking == 0);
             
             // assert i/j within bounds
-            assert(i < rows/blocking && j < cols/blocking);
+            assert(I < rows/blocking && J < cols/blocking);
             
             // assert block beeing of size blocking x blocking
             assert(block.getCols() == blocking && block.getRows() == blocking);
-            // TODO
+            
+            size_t k = 0;
+            for(size_t i = 0; i < blocking; ++i) {
+                for(size_t j = 0; j < blocking; ++j) {
+                    data[(I*blocking+i)*cols + J*blocking+j] = block.data[k++];
+                }
+            }
         }
         
         // This is the copy constructor. 
