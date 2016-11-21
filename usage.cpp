@@ -27,6 +27,26 @@ int main() {
 
     g2 = g;
     std::cout << "assignment of g to g2\n" << g << "\n" << g2 << std::endl;
+    
+    Grid2D<float> blocktest(8,8, 0);
+    blocktest.setBlockingFactor(4);
+    size_t counter = 0;
+    for(size_t i = 0; i < 8; ++i) {
+        for(size_t j = 0; j < 8; ++j) {
+            blocktest(i,j) = counter++;
+        }
+    }
+    
+    std::cout << "Blocktest matrix\n" << blocktest << std::endl;
+    
+    for(size_t i = 0; i < 8/4; ++i) {
+        for(size_t j = 0; j < 8/4; ++j) {
+            Grid2D<float> block(4, 4);
+            blocktest.getBlock(i, j, block);
+            std::cout << "Block I/J = " << i << "/" << j << "\n";
+            std::cout << block << std::endl;
+        }
+    }
 
     return 0;
 }
