@@ -3,6 +3,7 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include <limits>
 
 template<class T>
 class Grid2D
@@ -17,70 +18,70 @@ class Grid2D
             : rows(0)
             , cols(0)
             , data(std::vector<T>(0))
-            , blocking(0)
+            , blockSize(0)
             {}
         
         // This is the normal constructor. Gets you a rowsxcols matrix
         // with optinal default value value
         // Example
         //      Grid2D<double> square(3, 3, 5.0);
-        Grid2D(const size_t rows, const size_t cols, T value=0, const size_t blocking = 0)
+        Grid2D(const size_t rows, const size_t cols, T value=0, const size_t blockSize = 0)
             : rows(rows)
             , cols(cols)
             , data(std::vector<T>(rows*cols, value))
-            , blocking(0)
+            , blockSize(0)
             {}
             
         const size_t getRows() const { return rows; }
         const size_t getCols() const { return cols; }
         
-        const size_t getBlockingFactor() const { return blocking; }
-        void setBlockingFactor(const size_t factor) {
-            // assert rows and cols beeing multiple of the blocking factor
-            assert(rows % factor == 0);
-            assert(cols % factor == 0);
-            assert(factor > 1 && factor <= std::min(rows, cols));
+        const size_t getBlockSize() const { return blockSize; }
+        void setBlockSize(const size_t size) {
+            // assert rows and cols beeing multiple of the block size
+            assert(rows % size == 0);
+            assert(cols % size == 0);
+            assert(size > 1 && size <= std::min(rows, cols));
             
-            blocking = factor;
+            blockSize = size;
         }
         
         void getBlock(const size_t I, const size_t J, Grid2D<T>& block) {
-            // assert a useful blocking factor
-            assert(blocking > 1);
-            assert(blocking <= std::min(rows, cols));
-            assert(rows % blocking == 0 && cols % blocking == 0);
+            // assert a useful block size
+            assert(blockSize > 1);
+            assert(blockSize <= std::min(rows, cols));
+            assert(rows % blockSize == 0 && cols % blockSize == 0);
             
             // assert i/j within bounds
-            assert(I < rows/blocking && J < cols/blocking);
+            assert(I < rows/blockSize && J < cols/blockSize);
             
-            // assert block beeing of size blocking x blocking
-            assert(block.getCols() == blocking && block.getRows() == blocking);
+            // assert block beeing of size blockSize x blockSize
+            assert(block.getCols() == blockSize && block.getRows() == blockSize);
             
             size_t k = 0;
-            for(size_t i = 0; i < blocking; ++i) {
-                for(size_t j = 0; j < blocking; ++j) {
-                    block.data[k++] = data[(I*blocking+i)*cols + J*blocking+j];
+            for(size_t i = 0; i < blockSize; ++i) {
+                for(size_t j = 0; j < blockSize; ++j) {
+                    block.data[k++] = data[(I*blockSize+i)*cols + J*blockSize+j];
                 }
             }
-            assert(k == blocking * blocking);
+            assert(k == blockSize * blockSize);
         }
         
         void setBlock(const size_t I, const size_t J, const Grid2D<T>& block) {
-            // assert a useful blocking factor
-            assert(blocking > 1);
-            assert(blocking <= std::min(rows, cols));
-            assert(rows % blocking == 0 && cols % blocking == 0);
+            // assert a useful blockSize factor
+            assert(blockSize > 1);
+            assert(blockSize <= std::min(rows, cols));
+            assert(rows % blockSize == 0 && cols % blockSize == 0);
             
             // assert i/j within bounds
-            assert(I < rows/blocking && J < cols/blocking);
+            assert(I < rows/blockSize && J < cols/blockSize);
             
-            // assert block beeing of size blocking x blocking
-            assert(block.getCols() == blocking && block.getRows() == blocking);
+            // assert block beeing of size blockSize x blockSize
+            assert(block.getCols() == blockSize && block.getRows() == blockSize);
             
             size_t k = 0;
-            for(size_t i = 0; i < blocking; ++i) {
-                for(size_t j = 0; j < blocking; ++j) {
-                    data[(I*blocking+i)*cols + J*blocking+j] = block.data[k++];
+            for(size_t i = 0; i < blockSize; ++i) {
+                for(size_t j = 0; j < blockSize; ++j) {
+                    data[(I*blockSize+i)*cols + J*blockSize+j] = block.data[k++];
                 }
             }
         }
@@ -93,7 +94,7 @@ class Grid2D
             : rows(g.rows)
             , cols(g.cols)
             , data(g.data)
-            , blocking(g.blocking)
+            , blockSize(g.blockSize)
             {}
         
         // This is the assignment operator
@@ -128,29 +129,29 @@ class Grid2D
         size_t rows;
         size_t cols;
         std::vector<T> data;
-        size_t blocking;
+        size_t blockSize;
 };
 
 template<class T>
 std::ostream& operator<<(std::ostream& out, const Grid2D<T>& g)
 {
-    if(g.getBlockingFactor() > 1) {
-        out << "Blocking factor: " << g.getBlockingFactor() << "\n";
+    if(g.getBlockSize() > 1) {
+        out << "Block size: " << g.getBlockSize() << "\n";
     }
     
     for(size_t i = 0; i < g.getRows(); ++i) {
-        if(g.getBlockingFactor() > 1 && i > 0 && i % g.getBlockingFactor() == 0) {
-            for(size_t k = 0; k < g.getCols() + g.getCols() / g.getBlockingFactor() - 1; ++k) {
+        if(g.getBlockSize() > 1 && i > 0 && i % g.getBlockSize() == 0) {
+            for(size_t k = 0; k < g.getCols() + g.getCols() / g.getBlockSize() - 1; ++k) {
                 out << "-\t";
             }
             out << "\n";
         }
             
         for(size_t j = 0; j < g.getCols(); ++j) {
-            if(g.getBlockingFactor() > 1 && j > 0 && j % g.getBlockingFactor() == 0) {
+            if(g.getBlockSize() > 1 && j > 0 && j % g.getBlockSize() == 0) {
                 out << "|\t";
             }
-            out << g(i, j) << "\t";
+            out << ((g(i, j) == std::numeric_limits<T>::max()) ? 12345 : g(i,j)) << "\t";
         }
         out << "\n";
     }
@@ -162,5 +163,5 @@ void swap(Grid2D<T>& left, Grid2D<T>& right) {
     std::swap(left.rows, right.rows);
     std::swap(left.cols, right.cols);
     std::swap(left.data, right.data);
-    std::swap(left.blocking, right.blocking);
+    std::swap(left.blockSize, right.blockSize);
 }
