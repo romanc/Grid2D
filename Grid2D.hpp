@@ -1,9 +1,11 @@
 // Two dimensional grid class
 
-#include <vector>
+#include <algorithm>
 #include <cassert>
+#include <functional>
 #include <iostream>
 #include <limits>
+#include <vector>
 
 template<class T>
 class Grid2D
@@ -84,6 +86,10 @@ class Grid2D
                     data[(I*blockSize+i)*cols + J*blockSize+j] = block.data[k++];
                 }
             }
+        }
+        
+        void fillRandom(std::function<T()> generator) {
+            std::generate(data.begin(), data.end(), generator);
         }
         
         // This is the copy constructor. 
