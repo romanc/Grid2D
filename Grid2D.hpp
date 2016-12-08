@@ -127,7 +127,19 @@ class Grid2D
             assert(j < cols);
             return data[i*cols + j];
         }
-        
+
+		// This is for wirting to location (idx)
+		T& operator()(const size_t idx) {
+			assert(idx < data.size());
+			return data[idx];
+		}
+
+		// This is for reading from location (idx)
+		const T& operator()(const size_t idx) const {
+			assert(idx < data.size());
+			return data[idx];
+		}
+
         template<class U>
         friend void swap(Grid2D<U>& left, Grid2D<U>& right);
         
