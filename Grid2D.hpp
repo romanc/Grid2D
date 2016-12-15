@@ -7,7 +7,22 @@
 #include <limits>
 #include <vector>
 
-template<class T>
+namespace grid 
+{
+
+struct row_major {
+    static size_t index(const size_t i, const size_t j, const size_t rows, const size_t cols) {
+        return i*cols + j;
+    }
+};
+
+struct column_major {
+    static size_t index(const size_t i, const size_t j, const size_t rows, const size_t cols) {
+        return j*rows + i;
+    }
+};
+
+template<class T, class Ordering>
 class Grid2D
 {
     public:
@@ -15,7 +30,11 @@ class Grid2D
         // arguments and it will return a 0x0 matrix (initialized
         // with 0)
         // Example 
-        //      Grid2D<double> g;
+        //      grid::Grid2D<double, grid::row_major> g;
+        // 
+        // Example 2
+        //      using Grid_t = grid::Grid2D<double, grid::row_major>
+        //      Grid_t g;
         Grid2D() 
             : rows(0)
             , cols(0)
@@ -26,7 +45,7 @@ class Grid2D
         // This is the normal constructor. Gets you a rowsxcols matrix
         // with optinal default value value
         // Example
-        //      Grid2D<double> square(3, 3, 5.0);
+        //      grid::Grid2D<double, grid::row_major> square(3, 3, 5.0);
         Grid2D(const size_t rows, const size_t cols, T value=0, const size_t blockSize = 0)
             : rows(rows)
             , cols(cols)
@@ -38,6 +57,9 @@ class Grid2D
         const size_t getCols() const { return cols; }
         
         const size_t getBlockSize() const { return blockSize; }
+        
+        // PRE only works for row_major
+        // TODO write a version for column_major
         void setBlockSize(const size_t size) {
             // assert rows and cols beeing multiple of the block size
             assert(rows % size == 0);
@@ -47,7 +69,9 @@ class Grid2D
             blockSize = size;
         }
         
-        void getBlock(const size_t I, const size_t J, Grid2D<T>& block) {
+        // PRE only works for row_major
+        // TODO write a version for column_major
+        void getBlock(const size_t I, const size_t J, grid::Grid2D<T, Ordering>& block) {
             // assert a useful block size
             assert(blockSize > 1);
             assert(blockSize <= std::min(rows, cols));
@@ -68,7 +92,7 @@ class Grid2D
             assert(k == blockSize * blockSize);
         }
         
-        void setBlock(const size_t I, const size_t J, const Grid2D<T>& block) {
+        void setBlock(const size_t I, const size_t J, const grid::Grid2D<T, Ordering>& block) {
             // assert a useful blockSize factor
             assert(blockSize > 1);
             assert(blockSize <= std::min(rows, cols));
@@ -94,9 +118,9 @@ class Grid2D
         
         // This is the copy constructor. 
         // Example
-        //      Grid2D<int> g(3, 3, 0);
-        //      Grid2D<int> copy(g);
-        Grid2D(const Grid2D<T>& g)
+        //      grid::Grid2D<int, grid::row_major> g(3, 3, 0);
+        //      grid::Grid2D<int, grid::row_major> copy(g);
+        Grid2D(const Grid2D<T, Ordering>& g)
             : rows(g.rows)
             , cols(g.cols)
             , data(g.data)
@@ -105,10 +129,10 @@ class Grid2D
         
         // This is the assignment operator
         // Example
-        //      Grid2D<double> g(3, 4, 5.0);
-        //      Grid2D<int>    g2;
+        //      grid::Grid2D<double, grid::row_major> g(3, 4, 5.0);
+        //      grid::Grid2D<int, grid::row_major>    g2;
         //      g2 = g;
-        Grid2D& operator=(Grid2D<T> g) {
+        Grid2D& operator=(Grid2D<T, Ordering> g) {
             using std::swap;
             swap(*this, g);
             return *this;
@@ -118,30 +142,30 @@ class Grid2D
         T& operator()(const size_t i, const size_t j) {
             assert(i < rows);
             assert(j < cols);
-            return data[i*cols + j];
+            return data[Ordering::index(i, j, rows, cols)];
         }
         
         // This is for reading from location (i,j)
         const T& operator()(const size_t i, const size_t j) const {
             assert(i < rows);
             assert(j < cols);
-            return data[i*cols + j];
+            return data[Ordering::index(i, j, rows, cols)];
         }
 
-		// This is for wirting to location (idx)
-		T& operator()(const size_t idx) {
-			assert(idx < data.size());
-			return data[idx];
-		}
+        // This is for wirting to location (idx)
+        T& operator()(const size_t idx) {
+            assert(idx < data.size());
+            return data[idx];
+        }
 
-		// This is for reading from location (idx)
-		const T& operator()(const size_t idx) const {
-			assert(idx < data.size());
-			return data[idx];
-		}
+        // This is for reading from location (idx)
+        const T& operator()(const size_t idx) const {
+            assert(idx < data.size());
+            return data[idx];
+        }
 
-        template<class U>
-        friend void swap(Grid2D<U>& left, Grid2D<U>& right);
+        template<class U, class O2>
+        friend void swap(grid::Grid2D<U, O2>& left, grid::Grid2D<U, O2>& right);
         
     private:
         size_t rows;
@@ -150,8 +174,8 @@ class Grid2D
         size_t blockSize;
 };
 
-template<class T>
-std::ostream& operator<<(std::ostream& out, const Grid2D<T>& g)
+template<class T, class Ordering>
+std::ostream& operator<<(std::ostream& out, const grid::Grid2D<T, Ordering>& g)
 {
     if(g.getBlockSize() > 1) {
         out << "Block size: " << g.getBlockSize() << "\n";
@@ -169,17 +193,19 @@ std::ostream& operator<<(std::ostream& out, const Grid2D<T>& g)
             if(g.getBlockSize() > 1 && j > 0 && j % g.getBlockSize() == 0) {
                 out << "|\t";
             }
-            out << ((g(i, j) == std::numeric_limits<T>::max()) ? 12345 : g(i,j)) << "\t";
+            out << g(i,j) << "\t";
         }
         out << "\n";
     }
     return out;
 }
 
-template<class T>
-void swap(Grid2D<T>& left, Grid2D<T>& right) {
+template<class T, class Ordering>
+void swap(grid::Grid2D<T, Ordering>& left, grid::Grid2D<T, Ordering>& right) {
     std::swap(left.rows, right.rows);
     std::swap(left.cols, right.cols);
     std::swap(left.data, right.data);
     std::swap(left.blockSize, right.blockSize);
 }
+
+} // end of namespace grid
