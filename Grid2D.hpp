@@ -7,7 +7,7 @@
 #include <limits>
 #include <vector>
 
-namespace grid 
+namespace utils 
 {
 
 struct row_major {
@@ -30,10 +30,10 @@ class Grid2D
         // arguments and it will return a 0x0 matrix (initialized
         // with 0)
         // Example 
-        //      grid::Grid2D<double, grid::row_major> g;
+        //      utils::Grid2D<double, utils::row_major> g;
         // 
         // Example 2
-        //      using Grid_t = grid::Grid2D<double, grid::row_major>
+        //      using Grid_t = utils::Grid2D<double, utils::row_major>
         //      Grid_t g;
         Grid2D() 
             : rows(0)
@@ -45,7 +45,7 @@ class Grid2D
         // This is the normal constructor. Gets you a rowsxcols matrix
         // with optinal default value value
         // Example
-        //      grid::Grid2D<double, grid::row_major> square(3, 3, 5.0);
+        //      utils::Grid2D<double, utils::row_major> square(3, 3, 5.0);
         Grid2D(const size_t rows, const size_t cols, T value=0, const size_t blockSize = 0)
             : rows(rows)
             , cols(cols)
@@ -71,7 +71,7 @@ class Grid2D
         
         // PRE only works for row_major
         // TODO write a version for column_major
-        void getBlock(const size_t I, const size_t J, grid::Grid2D<T, Ordering>& block) {
+        void getBlock(const size_t I, const size_t J, utils::Grid2D<T, Ordering>& block) {
             // assert a useful block size
             assert(blockSize > 1);
             assert(blockSize <= std::min(rows, cols));
@@ -92,7 +92,7 @@ class Grid2D
             assert(k == blockSize * blockSize);
         }
         
-        void setBlock(const size_t I, const size_t J, const grid::Grid2D<T, Ordering>& block) {
+        void setBlock(const size_t I, const size_t J, const utils::Grid2D<T, Ordering>& block) {
             // assert a useful blockSize factor
             assert(blockSize > 1);
             assert(blockSize <= std::min(rows, cols));
@@ -118,8 +118,8 @@ class Grid2D
         
         // This is the copy constructor. 
         // Example
-        //      grid::Grid2D<int, grid::row_major> g(3, 3, 0);
-        //      grid::Grid2D<int, grid::row_major> copy(g);
+        //      utils::Grid2D<int, utils::row_major> g(3, 3, 0);
+        //      utils::Grid2D<int, utils::row_major> copy(g);
         Grid2D(const Grid2D<T, Ordering>& g)
             : rows(g.rows)
             , cols(g.cols)
@@ -129,8 +129,8 @@ class Grid2D
         
         // This is the assignment operator
         // Example
-        //      grid::Grid2D<double, grid::row_major> g(3, 4, 5.0);
-        //      grid::Grid2D<int, grid::row_major>    g2;
+        //      utils::Grid2D<double, utils::row_major> g(3, 4, 5.0);
+        //      utils::Grid2D<int, utils::row_major>    g2;
         //      g2 = g;
         Grid2D& operator=(Grid2D<T, Ordering> g) {
             using std::swap;
@@ -165,7 +165,7 @@ class Grid2D
         }
 
         template<class U, class O2>
-        friend void swap(grid::Grid2D<U, O2>& left, grid::Grid2D<U, O2>& right);
+        friend void swap(utils::Grid2D<U, O2>& left, utils::Grid2D<U, O2>& right);
         
     private:
         size_t rows;
@@ -175,7 +175,7 @@ class Grid2D
 };
 
 template<class T, class Ordering>
-std::ostream& operator<<(std::ostream& out, const grid::Grid2D<T, Ordering>& g)
+std::ostream& operator<<(std::ostream& out, const utils::Grid2D<T, Ordering>& g)
 {
     if(g.getBlockSize() > 1) {
         out << "Block size: " << g.getBlockSize() << "\n";
@@ -201,11 +201,11 @@ std::ostream& operator<<(std::ostream& out, const grid::Grid2D<T, Ordering>& g)
 }
 
 template<class T, class Ordering>
-void swap(grid::Grid2D<T, Ordering>& left, grid::Grid2D<T, Ordering>& right) {
+void swap(utils::Grid2D<T, Ordering>& left, utils::Grid2D<T, Ordering>& right) {
     std::swap(left.rows, right.rows);
     std::swap(left.cols, right.cols);
     std::swap(left.data, right.data);
     std::swap(left.blockSize, right.blockSize);
 }
 
-} // end of namespace grid
+} // end of namespace utils
