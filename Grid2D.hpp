@@ -1,11 +1,11 @@
 // Two dimensional grid class
 
-#include <algorithm>
-#include <cassert>
-#include <functional>
-#include <iostream>
-#include <limits>
-#include <vector>
+#include <algorithm>	// std::min()
+#include <cassert>		// assert()
+#include <functional>	// std::function
+#include <iostream>		// std::ostream
+#include <limits>		// std::numeric_limits<T>
+#include <vector>		// std::vector<T>
 
 namespace utils 
 {
@@ -38,7 +38,7 @@ class Grid2D
         Grid2D() 
             : rows(0)
             , cols(0)
-            , data(std::vector<T>(0))
+            , data_(std::vector<T>(0))
             , blockSize(0)
             {}
         
@@ -49,12 +49,15 @@ class Grid2D
         Grid2D(const size_t rows, const size_t cols, T value=0, const size_t blockSize = 0)
             : rows(rows)
             , cols(cols)
-            , data(std::vector<T>(rows*cols, value))
+            , data_(std::vector<T>(rows*cols, value))
             , blockSize(0)
             {}
             
         const size_t getRows() const { return rows; }
         const size_t getCols() const { return cols; }
+
+		const T* data() const { return data_.data(); }
+		T* data() { return data_.data(); }
         
         const size_t getBlockSize() const { return blockSize; }
         
@@ -86,7 +89,7 @@ class Grid2D
             size_t k = 0;
             for(size_t i = 0; i < blockSize; ++i) {
                 for(size_t j = 0; j < blockSize; ++j) {
-                    block.data[k++] = data[(I*blockSize+i)*cols + J*blockSize+j];
+                    block.data_[k++] = data_[(I*blockSize+i)*cols + J*blockSize+j];
                 }
             }
             assert(k == blockSize * blockSize);
@@ -107,13 +110,13 @@ class Grid2D
             size_t k = 0;
             for(size_t i = 0; i < blockSize; ++i) {
                 for(size_t j = 0; j < blockSize; ++j) {
-                    data[(I*blockSize+i)*cols + J*blockSize+j] = block.data[k++];
+                    data_[(I*blockSize+i)*cols + J*blockSize+j] = block.data_[k++];
                 }
             }
         }
         
         void fillRandom(std::function<T()> generator) {
-            std::generate(data.begin(), data.end(), generator);
+            std::generate(data_.begin(), data_.end(), generator);
         }
         
         // This is the copy constructor. 
@@ -123,7 +126,7 @@ class Grid2D
         Grid2D(const Grid2D<T, Ordering>& g)
             : rows(g.rows)
             , cols(g.cols)
-            , data(g.data)
+            , data_(g.data_)
             , blockSize(g.blockSize)
             {}
         
@@ -142,26 +145,26 @@ class Grid2D
         T& operator()(const size_t i, const size_t j) {
             assert(i < rows);
             assert(j < cols);
-            return data[Ordering::index(i, j, rows, cols)];
+            return data_[Ordering::index(i, j, rows, cols)];
         }
         
         // This is for reading from location (i,j)
         const T& operator()(const size_t i, const size_t j) const {
             assert(i < rows);
             assert(j < cols);
-            return data[Ordering::index(i, j, rows, cols)];
+            return data_[Ordering::index(i, j, rows, cols)];
         }
 
         // This is for wirting to location (idx)
         T& operator()(const size_t idx) {
-            assert(idx < data.size());
-            return data[idx];
+            assert(idx < data_.size());
+            return data_[idx];
         }
 
         // This is for reading from location (idx)
         const T& operator()(const size_t idx) const {
-            assert(idx < data.size());
-            return data[idx];
+            assert(idx < data_.size());
+            return data_[idx];
         }
 
         template<class U, class O2>
@@ -170,7 +173,7 @@ class Grid2D
     private:
         size_t rows;
         size_t cols;
-        std::vector<T> data;
+        std::vector<T> data_;
         size_t blockSize;
 };
 
@@ -204,7 +207,7 @@ template<class T, class Ordering>
 void swap(utils::Grid2D<T, Ordering>& left, utils::Grid2D<T, Ordering>& right) {
     std::swap(left.rows, right.rows);
     std::swap(left.cols, right.cols);
-    std::swap(left.data, right.data);
+    std::swap(left.data_, right.data_);
     std::swap(left.blockSize, right.blockSize);
 }
 

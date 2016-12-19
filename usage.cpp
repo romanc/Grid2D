@@ -1,4 +1,5 @@
 #include <algorithm>    // std::min
+#include <iostream>
 #include "Grid2D.hpp"
 
 int main() {
